@@ -1,0 +1,3 @@
+-- created_at con default server (es. timestamptz / CURRENT_TIMESTAMP) per INSERT solo staff_id, salon_id, type.
+-- Esempio Postgres:
+-- ALTER TABLE attendance_logs ALTER COLUMN created_at SET DEFAULT now();
