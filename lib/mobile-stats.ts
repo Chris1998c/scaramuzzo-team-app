@@ -194,6 +194,23 @@ export type MobileStatsView = {
   topProducts: ProductStatRow[];
 };
 
+/** Etichetta periodo KPI in Home (“I miei numeri”). */
+export const STATS_PERIOD_THIS_MONTH = 'Questo mese';
+
+export const STATS_UNAVAILABLE_MESSAGE = 'Statistiche momentaneamente non disponibili';
+export const STATS_RETRY_MESSAGE = 'Riprova più tardi';
+
+/** Copia utente a due righe per errori statistiche (Home, Statistiche). */
+export function statsErrorCopy(): { title: string; hint: string } {
+  return { title: STATS_UNAVAILABLE_MESSAGE, hint: STATS_RETRY_MESSAGE };
+}
+
+/** Messaggio compatto (una riga) — non espone dettagli tecnici al di fuori del parser. */
+export function friendlyStatsError(_msg?: string): string {
+  const { title, hint } = statsErrorCopy();
+  return `${title}. ${hint}.`;
+}
+
 /** Payload valido ma nessun dato nel periodo (KPI a zero e liste vuote). */
 export function isStatsEffectivelyEmpty(v: MobileStatsView): boolean {
   return (
@@ -272,16 +289,8 @@ function parseStatsPayloadStrict(raw: unknown): { ok: true; view: MobileStatsVie
     productsSoldQty = totalScan.value;
   } else if (sales.by_product == null) {
     productsSoldQty = 0;
-  } else if (Array.isArray(sales.by_product)) {
-    const summed = sumProductsStrict(sales.by_product);
-    if (summed === null) {
-      return {
-        ok: false,
-        error:
-          'sales_attributed.by_product: righe non valide (attesi product_name|product, qty|quantity).',
-      };
-    }
-    productsSoldQty = summed;
+  } else if (Array.isArray(sales.by_product) || sales.by_product != null) {
+    productsSoldQty = sumProductsLenient(sales.by_product);
   } else {
     return {
       ok: false,
@@ -289,24 +298,9 @@ function parseStatsPayloadStrict(raw: unknown): { ok: true; view: MobileStatsVie
     };
   }
 
-  const byCategory = parseByCategoryStrict(operational.by_category);
-  if (byCategory === null) {
-    return { ok: false, error: 'operational.by_category: formato non valido.' };
-  }
-
-  const topServices = parseAppointmentLinesStrict(operational.appointment_lines_by_service);
-  if (topServices === null) {
-    return {
-      ok: false,
-      error:
-        'operational.appointment_lines_by_service: formato non valido (service_name|service, count).',
-    };
-  }
-
-  const topProducts = parseByProductStrict(sales.by_product);
-  if (topProducts === null) {
-    return { ok: false, error: 'sales_attributed.by_product: formato non valido (product_name|product, qty).' };
-  }
+  const byCategory = parseByCategoryLenient(operational.by_category);
+  const topServices = parseAppointmentLinesLenient(operational);
+  const topProducts = parseByProductLenient(sales.by_product);
 
   return {
     ok: true,
@@ -323,96 +317,127 @@ function parseStatsPayloadStrict(raw: unknown): { ok: true; view: MobileStatsVie
   };
 }
 
-function parseByCategoryStrict(raw: unknown): CategoryStatRow[] | null {
-  if (raw == null) {
-    return [];
-  }
-  if (!Array.isArray(raw)) {
-    return null;
-  }
-  const out: CategoryStatRow[] = [];
-  for (const row of raw) {
-    const r = asRecord(row);
-    if (!r) {
-      return null;
-    }
-    const category_name = rowString(r, ['category_name', 'category']);
-    const count = tryFirstNumber(r, ['count', 'total']);
-    if (!category_name || count === null) {
-      return null;
-    }
-    out.push({ category_name, count });
-  }
-  out.sort((a, b) => b.count - a.count);
-  return out;
-}
+const CATEGORY_NAME_KEYS = [
+  'category_name',
+  'category',
+  'categoryName',
+  'name',
+  'label',
+  'title',
+] as const;
+const SERVICE_NAME_KEYS = [
+  'service_name',
+  'service',
+  'serviceName',
+  'name',
+  'label',
+  'service_label',
+  'title',
+  'nome',
+  'descrizione',
+] as const;
+const PRODUCT_NAME_KEYS = [
+  'product_name',
+  'product',
+  'productName',
+  'name',
+  'label',
+  'title',
+  'nome',
+  'descrizione',
+] as const;
+const RANK_COUNT_KEYS = ['count', 'total', 'qty', 'quantity', 'n', 'num', 'lines', 'appointments'] as const;
 
-function parseAppointmentLinesStrict(raw: unknown): ServiceLineStatRow[] | null {
+/** Righe classifica: array di oggetti, tuple [nome, qty] o mappa { nome: qty }. Righe non parseabili → saltate. */
+function parseRankedRowsLenient(
+  raw: unknown,
+  nameKeys: readonly string[],
+  qtyKeys: readonly string[]
+): { name: string; qty: number }[] {
   if (raw == null) {
     return [];
   }
-  if (!Array.isArray(raw)) {
-    return null;
-  }
-  const out: ServiceLineStatRow[] = [];
-  for (const row of raw) {
-    const r = asRecord(row);
-    if (!r) {
-      return null;
-    }
-    const serviceName = rowString(r, ['service_name', 'service']);
-    const count = tryFirstNumber(r, ['count', 'total']);
-    if (!serviceName || count === null) {
-      return null;
-    }
-    out.push({ name: serviceName, count });
-  }
-  out.sort((a, b) => b.count - a.count);
-  return out;
-}
 
-function parseByProductStrict(raw: unknown): ProductStatRow[] | null {
-  if (raw == null) {
-    return [];
-  }
+  const push = (out: { name: string; qty: number }[], name: string, qty: number) => {
+    if (name && Number.isFinite(qty)) {
+      out.push({ name, qty });
+    }
+  };
+
   if (!Array.isArray(raw)) {
-    return null;
+    const map = asRecord(raw);
+    if (!map) {
+      return [];
+    }
+    const out: { name: string; qty: number }[] = [];
+    for (const [k, v] of Object.entries(map)) {
+      const label = k.trim();
+      const n = coerceFiniteNumber(v);
+      if (label && n !== null) {
+        push(out, label, n);
+      }
+    }
+    out.sort((a, b) => b.qty - a.qty);
+    return out;
   }
-  const out: ProductStatRow[] = [];
+
+  const out: { name: string; qty: number }[] = [];
   for (const row of raw) {
+    if (Array.isArray(row) && row.length >= 2) {
+      const name =
+        typeof row[0] === 'string'
+          ? row[0].trim()
+          : row[0] != null
+            ? String(row[0]).trim()
+            : '';
+      const n = coerceFiniteNumber(row[1]);
+      if (name && n !== null) {
+        push(out, name, n);
+      }
+      continue;
+    }
     const r = asRecord(row);
     if (!r) {
-      return null;
+      continue;
     }
-    const productName = rowString(r, ['product_name', 'product']);
-    const qty = rowQty(r);
-    if (!productName || qty === null) {
-      return null;
+    const name = rowString(r, nameKeys);
+    const qty = tryFirstNumber(r, qtyKeys) ?? rowQty(r);
+    if (name && qty !== null) {
+      push(out, name, qty);
     }
-    out.push({ name: productName, qty });
   }
   out.sort((a, b) => b.qty - a.qty);
   return out;
 }
 
-function sumProductsStrict(raw: unknown): number | null {
-  if (!Array.isArray(raw)) {
-    return null;
-  }
-  let sum = 0;
-  for (const row of raw) {
-    const r = asRecord(row);
-    if (!r) {
-      return null;
-    }
-    const productName = rowString(r, ['product_name', 'product']);
-    const qty = rowQty(r);
-    if (!productName || qty === null) {
-      return null;
-    }
-    sum += qty;
-  }
-  return sum;
+function parseByCategoryLenient(raw: unknown): CategoryStatRow[] {
+  return parseRankedRowsLenient(raw, CATEGORY_NAME_KEYS, RANK_COUNT_KEYS).map((r) => ({
+    category_name: r.name,
+    count: r.qty,
+  }));
+}
+
+function parseAppointmentLinesLenient(operational: Record<string, unknown>): ServiceLineStatRow[] {
+  const raw =
+    operational.appointment_lines_by_service ??
+    operational.appointmentLinesByService ??
+    operational.lines_by_service ??
+    operational.services_by_name;
+  return parseRankedRowsLenient(raw, SERVICE_NAME_KEYS, RANK_COUNT_KEYS).map((r) => ({
+    name: r.name,
+    count: r.qty,
+  }));
+}
+
+function parseByProductLenient(raw: unknown): ProductStatRow[] {
+  return parseRankedRowsLenient(raw, PRODUCT_NAME_KEYS, RANK_COUNT_KEYS).map((r) => ({
+    name: r.name,
+    qty: r.qty,
+  }));
+}
+
+function sumProductsLenient(raw: unknown): number {
+  return parseByProductLenient(raw).reduce((sum, row) => sum + row.qty, 0);
 }
 
 export async function fetchMobileStats(
@@ -445,20 +470,20 @@ export async function fetchMobileStats(
     if (result.kind === 'error') {
       return {
         ok: false,
-        error: readMobileErrorPayload(result.data) ?? 'Impossibile caricare le statistiche.',
+        error: friendlyStatsError(readMobileErrorPayload(result.data) ?? undefined),
       };
     }
 
     const data = result.data;
     if (data == null || typeof data !== 'object') {
-      return { ok: false, error: 'Risposta non valida dal server.' };
+      return { ok: false, error: friendlyStatsError() };
     }
 
     const top = data as Record<string, unknown>;
     if (top.success === false) {
       return {
         ok: false,
-        error: readMobileErrorPayload(data) ?? 'Richiesta non valida.',
+        error: friendlyStatsError(readMobileErrorPayload(data) ?? undefined),
       };
     }
 
@@ -467,11 +492,11 @@ export async function fetchMobileStats(
 
     const parsed = parseStatsPayloadStrict(rawPayload);
     if (!parsed.ok) {
-      return { ok: false, error: parsed.error };
+      return { ok: false, error: friendlyStatsError(parsed.error) };
     }
 
     return { ok: true, view: parsed.view, range };
   } catch {
-    return { ok: false, error: 'Connessione non disponibile.' };
+    return { ok: false, error: friendlyStatsError() };
   }
 }

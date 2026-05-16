@@ -32,6 +32,8 @@ import {
 import {
   fetchMobileStats,
   isStatsEffectivelyEmpty,
+  STATS_RETRY_MESSAGE,
+  STATS_UNAVAILABLE_MESSAGE,
   type MobileStatsView,
   type StatsPeriodPreset,
 } from '@/lib/mobile-stats';
@@ -46,7 +48,8 @@ export default function StatsScreen() {
   const [preset, setPreset] = useState<StatsPeriodPreset>('month');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const [view, setView] = useState<MobileStatsView | null>(null);
   const [rangeLabel, setRangeLabel] = useState({ short: '', range: '' });
 
@@ -57,7 +60,10 @@ export default function StatsScreen() {
       } else {
         setLoading(true);
       }
-      setError(null);
+      if (!isRefresh) {
+        setLoadFailed(false);
+      }
+      setRefreshFailed(false);
 
       try {
         const staffId = await readStaffIdOrNull();
@@ -71,16 +77,26 @@ export default function StatsScreen() {
           if (result.sessionEnded) {
             return;
           }
-          setError(result.error ?? 'Impossibile caricare le statistiche.');
-          setView(null);
+          if (isRefresh) {
+            setRefreshFailed(true);
+          } else {
+            setLoadFailed(true);
+            setView(null);
+          }
           return;
         }
 
+        setLoadFailed(false);
+        setRefreshFailed(false);
         setView(result.view);
         setRangeLabel({ short: result.range.labelShort, range: result.range.labelRange });
       } catch {
-        setError('Connessione non disponibile.');
-        setView(null);
+        if (isRefresh) {
+          setRefreshFailed(true);
+        } else {
+          setLoadFailed(true);
+          setView(null);
+        }
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -97,7 +113,7 @@ export default function StatsScreen() {
     void load(true);
   }, [load]);
 
-  if (loading && !view && !error) {
+  if (loading && !view && !loadFailed) {
     return (
       <View
         style={[
@@ -114,7 +130,7 @@ export default function StatsScreen() {
     );
   }
 
-  if (error && !view) {
+  if (loadFailed && !view) {
     return (
       <View
         style={[
@@ -126,8 +142,8 @@ export default function StatsScreen() {
           },
         ]}>
         <View style={styles.errorPanel}>
-          <Text style={styles.errorKicker}>Errore</Text>
-          <Text style={styles.errorBody}>{error}</Text>
+          <Text style={styles.errorTitle}>{STATS_UNAVAILABLE_MESSAGE}</Text>
+          <Text style={styles.errorBody}>{STATS_RETRY_MESSAGE}</Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.retryBtn, pressed && styles.pressed]}
@@ -212,9 +228,9 @@ export default function StatsScreen() {
               <View style={styles.kpiRule} />
               <KpiRow label="Clienti serviti" value={v.clientsServed} />
               <View style={styles.kpiRule} />
-              <KpiRow label="Prodotti venduti (qty)" value={v.productsSoldQty} />
+              <KpiRow label="Prodotti venduti" value={v.productsSoldQty} />
               <View style={styles.kpiRule} />
-              <KpiRow label="Giorni lavorati (statistiche)" value={v.daysWorked} />
+              <KpiRow label="Giorni lavorati" value={v.daysWorked} />
             </View>
 
             <SectionBlock
@@ -252,8 +268,11 @@ export default function StatsScreen() {
           </>
         ) : null}
 
-        {error && v ? (
-          <Text style={styles.inlineError}>Aggiornamento non riuscito: {error}</Text>
+        {refreshFailed && v ? (
+          <View style={styles.inlineErrorWrap}>
+            <Text style={styles.inlineError}>{STATS_UNAVAILABLE_MESSAGE}</Text>
+            <Text style={styles.inlineErrorHint}>{STATS_RETRY_MESSAGE}</Text>
+          </View>
         ) : null}
       </ScrollView>
     </View>
@@ -331,13 +350,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER_BRONZE,
   },
-  errorKicker: {
-    color: GOLD_LIGHT,
-    fontSize: 10,
+  errorTitle: {
+    color: TEXT_MAIN,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
+    lineHeight: 22,
     marginBottom: 8,
+    letterSpacing: -0.2,
   },
   errorBody: {
     color: TEXT_MUTED,
@@ -542,11 +561,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
+  inlineErrorWrap: {
+    marginTop: 8,
+    marginBottom: 12,
+    alignItems: 'center',
+    gap: 4,
+  },
   inlineError: {
     color: TEXT_MUTED,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  inlineErrorHint: {
+    color: TEXT_DIM,
     fontSize: 12,
-    marginTop: 4,
-    marginBottom: 8,
+    lineHeight: 17,
     textAlign: 'center',
   },
 });

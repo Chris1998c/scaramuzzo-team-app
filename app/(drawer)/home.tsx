@@ -8,7 +8,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AUTH_STORAGE_KEYS } from '@/constants/auth-storage';
 import { postMobileJson } from '@/lib/api-session';
-import { fetchMobileStats } from '@/lib/mobile-stats';
+import {
+  fetchMobileStats,
+  STATS_PERIOD_THIS_MONTH,
+  STATS_RETRY_MESSAGE,
+  STATS_UNAVAILABLE_MESSAGE,
+} from '@/lib/mobile-stats';
 import {
   clockAttendance,
   fetchAttendance,
@@ -61,6 +66,30 @@ function isDashboardPayloadUsable(t: Record<string, unknown>): boolean {
   );
 }
 
+function extractDashboardKpis(raw: Record<string, unknown>): DashboardStats | null {
+  if (isDashboardPayloadUsable(raw)) {
+    return {
+      services_count: raw.services_count,
+      clients_count: raw.clients_count,
+      products_count: raw.products_count,
+      worked_days_count: raw.worked_days_count,
+    };
+  }
+  const nested = raw.data;
+  if (nested != null && typeof nested === 'object' && !Array.isArray(nested)) {
+    const d = nested as Record<string, unknown>;
+    if (isDashboardPayloadUsable(d)) {
+      return {
+        services_count: d.services_count,
+        clients_count: d.clients_count,
+        products_count: d.products_count,
+        worked_days_count: d.worked_days_count,
+      };
+    }
+  }
+  return null;
+}
+
 function dashAttendance(value: string | null | undefined): string {
   return value == null || value === '' ? '—' : value;
 }
@@ -99,12 +128,10 @@ export default function HomeScreen() {
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [distanceError, setDistanceError] = useState<string | null>(null);
   const [clockError, setClockError] = useState<string | null>(null);
-  const [dashboardError, setDashboardError] = useState<string | null>(null);
-  const [kpiPeriodNote, setKpiPeriodNote] = useState<string | null>(null);
+  const [statsUnavailable, setStatsUnavailable] = useState(false);
 
   const fetchDashboardStats = async (staffId: number) => {
-    setDashboardError(null);
-    setKpiPeriodNote(null);
+    setStatsUnavailable(false);
     try {
       const dashResult = await postMobileJson<Record<string, unknown>>('/api/mobile/dashboard/stats', {
         staff_id: staffId,
@@ -116,16 +143,13 @@ export default function HomeScreen() {
 
       if (dashResult.kind === 'success' && dashResult.data != null && typeof dashResult.data === 'object') {
         const t = dashResult.data as Record<string, unknown>;
-        if (t.success !== false && isDashboardPayloadUsable(t)) {
-          setDashboardStats({
-            services_count: t.services_count,
-            clients_count: t.clients_count,
-            products_count: t.products_count,
-            worked_days_count: t.worked_days_count,
-          });
-          setDashboardError(null);
-          setKpiPeriodNote('Sintesi dashboard (periodo definito dal gestionale).');
-          return;
+        if (t.success !== false) {
+          const kpis = extractDashboardKpis(t);
+          if (kpis) {
+            setDashboardStats(kpis);
+            setStatsUnavailable(false);
+            return;
+          }
         }
       }
 
@@ -137,17 +161,16 @@ export default function HomeScreen() {
           products_count: statRes.view.productsSoldQty,
           worked_days_count: statRes.view.daysWorked,
         });
-        setDashboardError(null);
-        setKpiPeriodNote('Mese di calendario corrente (Italia), stessi KPI della schermata Statistiche · Mese.');
+        setStatsUnavailable(false);
         return;
       }
       if (!statRes.sessionEnded) {
         setDashboardStats({});
-        setDashboardError(statRes.error ?? 'Impossibile caricare i numeri.');
+        setStatsUnavailable(true);
       }
     } catch {
       setDashboardStats({});
-      setDashboardError('Connessione non disponibile.');
+      setStatsUnavailable(true);
     }
   };
 
@@ -471,11 +494,14 @@ export default function HomeScreen() {
         )}
 
         <Text style={styles.sectionHeading}>I miei numeri</Text>
-        {kpiPeriodNote ? <Text style={styles.kpiPeriodHint}>{kpiPeriodNote}</Text> : null}
-        {dashboardError ? (
-          <Text style={styles.dashboardErrorMuted} accessibilityRole="alert">
-            {dashboardError}
-          </Text>
+        {statsFetched && !statsUnavailable ? (
+          <Text style={styles.kpiPeriodHint}>{STATS_PERIOD_THIS_MONTH}</Text>
+        ) : null}
+        {statsUnavailable ? (
+          <View style={styles.statsUnavailableWrap} accessibilityRole="alert">
+            <Text style={styles.dashboardErrorMuted}>{STATS_UNAVAILABLE_MESSAGE}</Text>
+            <Text style={styles.statsUnavailableHint}>{STATS_RETRY_MESSAGE}</Text>
+          </View>
         ) : null}
         <View style={styles.statsGrid}>
           <View style={styles.statsRow}>
@@ -753,12 +779,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     letterSpacing: 0.06,
   },
-  dashboardErrorMuted: {
-    color: TEXT_DIM,
-    fontSize: 13,
-    lineHeight: 20,
+  statsUnavailableWrap: {
     marginBottom: 12,
-    letterSpacing: 0.08,
+    gap: 4,
+  },
+  dashboardErrorMuted: {
+    color: TEXT_MUTED,
+    fontSize: 13,
+    lineHeight: 18,
+    letterSpacing: 0.06,
+  },
+  statsUnavailableHint: {
+    color: TEXT_DIM,
+    fontSize: 12,
+    lineHeight: 17,
+    letterSpacing: 0.06,
   },
   statsGrid: {
     gap: 12,
