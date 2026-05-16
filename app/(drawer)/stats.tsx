@@ -16,11 +16,12 @@ import {
   DRAWER_SCREEN_PADDING_TOP,
 } from '@/constants/shell-layout';
 import {
+  ACCENT_CREAM,
   BORDER_BRONZE,
-  BORDER_INSET_SOFT,
+  CARD_BORDER_COLOR,
   GOLD_BRAND_LINE,
   GOLD_EDGE,
-  GOLD_LIGHT,
+  POSITIVE_BORDER,
   SHELL,
   SPINNER_TINT,
   SURFACE_CARD,
@@ -366,14 +367,14 @@ const styles = StyleSheet.create({
   retryBtn: {
     marginTop: 20,
     borderWidth: 1,
-    borderColor: GOLD_EDGE,
+    borderColor: POSITIVE_BORDER,
     paddingHorizontal: 28,
     paddingVertical: 16,
     borderRadius: 999,
     backgroundColor: SURFACE_CARD,
   },
   retryLabel: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: 0.5,
@@ -426,7 +427,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   segmentLabelActive: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
   },
   rangeTitle: {
     color: TEXT_MAIN,
@@ -470,12 +471,12 @@ const styles = StyleSheet.create({
     paddingVertical: 22,
     marginBottom: 22,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
     borderLeftWidth: 3,
     borderLeftColor: GOLD_EDGE,
   },
   heroKicker: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.4,
@@ -505,7 +506,7 @@ const styles = StyleSheet.create({
   },
   kpiRule: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: BORDER_INSET_SOFT,
+    backgroundColor: CARD_BORDER_COLOR,
     marginVertical: 12,
   },
   sectionCard: {
@@ -546,7 +547,7 @@ const styles = StyleSheet.create({
   },
   rankRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: BORDER_INSET_SOFT,
+    borderBottomColor: CARD_BORDER_COLOR,
   },
   rankLeft: {
     flex: 1,
@@ -556,7 +557,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.15,
   },
   rankRight: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 14,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],

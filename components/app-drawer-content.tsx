@@ -9,7 +9,7 @@ import {
   BORDER_BRONZE,
   GOLD_BRAND,
   FOOTER_SEPARATOR_BRONZE,
-  GOLD_LIGHT,
+  ACCENT_CREAM,
   POSITIVE,
   SHELL,
   SURFACE_CARD,
@@ -41,7 +41,7 @@ function NavRow({
       <MaterialIcons
         name={icon}
         size={21}
-        color={active ? GOLD_LIGHT : TEXT_MUTED}
+        color={active ? ACCENT_CREAM : TEXT_MUTED}
         style={styles.navIcon}
       />
       <Text style={[styles.navLabel, active && styles.navLabelActive]}>{label}</Text>
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     borderColor: BORDER_BRONZE,
   },
   logoutLabel: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.15,

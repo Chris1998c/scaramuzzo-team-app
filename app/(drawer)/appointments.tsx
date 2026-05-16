@@ -29,8 +29,7 @@ import {
   CARD_SHADOW_SUBTLE,
   GOLD_BRAND,
   GOLD_BRAND_LINE,
-  GOLD_LIGHT,
-  GOLD_RIM,
+  ACCENT_CREAM,
   NEUTRAL_PILL_FILL,
   POSITIVE,
   POSITIVE_BORDER,
@@ -279,9 +278,8 @@ export default function AppointmentsScreen() {
           },
         ]}>
         <View style={styles.panelMuted}>
-          <Text style={styles.panelKicker}>Errore</Text>
-          <Text style={styles.panelTitle}>Aggiornamento non riuscito</Text>
-          <Text style={styles.panelBody}>{error}</Text>
+          <Text style={styles.panelTitle}>Agenda momentaneamente non disponibile</Text>
+          <Text style={styles.panelBody}>Riprova più tardi</Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.retryBtn, pressed && styles.pressedOpacity]}
@@ -404,7 +402,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitlePrimary: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 19,
     fontWeight: '700',
     letterSpacing: -0.15,
@@ -447,7 +445,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   timeValue: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 24,
     fontWeight: '700',
     letterSpacing: 0.35,
@@ -552,7 +550,7 @@ const styles = StyleSheet.create({
     borderColor: BORDER_BRONZE,
   },
   pillText_neutral: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
   },
   emptyPanel: {
     paddingVertical: 44,
@@ -586,20 +584,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER_BRONZE,
   },
-  panelKicker: {
-    color: GOLD_LIGHT,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 2.2,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
   panelTitle: {
     color: TEXT_MAIN,
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-    letterSpacing: 0.15,
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 10,
+    letterSpacing: -0.2,
   },
   panelBody: {
     color: TEXT_MUTED,
@@ -610,14 +600,14 @@ const styles = StyleSheet.create({
   retryBtn: {
     marginTop: 22,
     borderWidth: 1,
-    borderColor: GOLD_RIM,
+    borderColor: POSITIVE_BORDER,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 999,
     backgroundColor: SURFACE_MEDIUM,
   },
   retryLabel: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: 0.5,

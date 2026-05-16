@@ -31,14 +31,17 @@ import {
 import {
   DRAWER_SCREEN_PADDING_HORIZONTAL,
   DRAWER_SCREEN_PADDING_TOP,
+  RADIUS_LG,
+  RADIUS_MD,
 } from '@/constants/shell-layout';
 import { firstNameFromDisplayName } from '@/lib/collaborator-identity';
 import { readStaffIdOrNull } from '@/lib/mobile-session-read';
 import {
-  BORDER_INSET_SOFT,
-  CTA_ON_LIGHT,
+  ACCENT_CREAM,
+  CARD_BORDER_COLOR,
+  CTA_ON_PRIMARY,
+  CTA_PRIMARY,
   GOLD_EDGE,
-  GOLD_LIGHT,
   GOLD_RIM,
   POSITIVE,
   SHELL,
@@ -50,9 +53,6 @@ import {
   TEXT_MUTED,
   TEXT_NEUTRAL,
 } from '@/constants/shell-theme';
-
-const RADIUS_LG = 24;
-const RADIUS_MD = 20;
 const AGENDA_PREVIEW_MAX = 5;
 
 const MSG_ATT_LOAD = 'Impossibile caricare le presenze';
@@ -446,7 +446,7 @@ export default function HomeScreen() {
               ) : null}
               <Pressable
                 style={({ pressed }) => [
-                  attendanceView.status === 'out' ? styles.ctaGold : styles.ctaOutlineGold,
+                  attendanceView.status === 'out' ? styles.ctaPrimary : styles.ctaOutlineGold,
                   (pressed || attendanceLoading) && styles.ctaPressed,
                   attendanceLoading && styles.ctaDisabled,
                 ]}
@@ -455,14 +455,12 @@ export default function HomeScreen() {
                 {attendanceLoading ? (
                   <View style={styles.ctaBusyRow}>
                     <ActivityIndicator
-                      color={
-                        attendanceView.status === 'out' ? CTA_ON_LIGHT : GOLD_LIGHT
-                      }
+                      color={attendanceView.status === 'out' ? CTA_ON_PRIMARY : ACCENT_CREAM}
                     />
                     <Text
                       style={
                         attendanceView.status === 'out'
-                          ? styles.ctaGoldLabel
+                          ? styles.ctaPrimaryLabel
                           : styles.ctaOutlineGoldLabel
                       }>
                       {mainButtonLabel}
@@ -472,7 +470,7 @@ export default function HomeScreen() {
                   <Text
                     style={
                       attendanceView.status === 'out'
-                        ? styles.ctaGoldLabel
+                        ? styles.ctaPrimaryLabel
                         : styles.ctaOutlineGoldLabel
                     }>
                     {mainButtonLabel}
@@ -620,7 +618,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE_CARD,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
     paddingVertical: 18,
     paddingHorizontal: 20,
     marginBottom: 18,
@@ -646,7 +644,7 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
     borderLeftWidth: 3,
     borderLeftColor: GOLD_EDGE,
   },
@@ -694,7 +692,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 28,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
   },
   presenceErrorBox: {
     marginBottom: 14,
@@ -725,16 +723,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  ctaGold: {
+  ctaPrimary: {
     width: '100%',
-    backgroundColor: GOLD_LIGHT,
+    backgroundColor: CTA_PRIMARY,
     borderRadius: RADIUS_MD,
     paddingVertical: 17,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(15,169,88,0.42)',
   },
-  ctaGoldLabel: {
-    color: CTA_ON_LIGHT,
+  ctaPrimaryLabel: {
+    color: CTA_ON_PRIMARY,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.4,
@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   sectionHeading: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1.2,
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
   },
   statMiniLabel: {
     color: TEXT_MUTED,
@@ -838,7 +838,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
     borderLeftWidth: 3,
     borderLeftColor: GOLD_EDGE,
   },
@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
   },
   agendaRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: BORDER_INSET_SOFT,
+    borderBottomColor: CARD_BORDER_COLOR,
   },
   agendaRowTop: {
     flexDirection: 'row',
@@ -875,7 +875,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   agendaTime: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -914,7 +914,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   agendaLinkText: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.4,

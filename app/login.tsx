@@ -20,19 +20,18 @@ import {
   effectiveLoginPayload,
 } from '@/lib/collaborator-identity';
 import {
+  ACCENT_CREAM,
   BORDER_BRONZE,
-  BORDER_INSET,
-  CTA_ON_LIGHT,
-  CTA_SURFACE,
+  CARD_BORDER_COLOR,
+  CTA_ON_PRIMARY,
+  CTA_PRIMARY,
   SHELL,
   SURFACE_CARD,
   SURFACE_SUNKEN,
   TEXT_MAIN,
   TEXT_MUTED,
 } from '@/constants/shell-theme';
-
-const RADIUS_LG = 24;
-const RADIUS_MD = 20;
+import { RADIUS_LG, RADIUS_MD } from '@/constants/shell-layout';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -188,7 +187,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   heroTitle: {
-    color: TEXT_MAIN,
+    color: ACCENT_CREAM,
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.5,
@@ -208,7 +207,7 @@ const styles = StyleSheet.create({
     gap: 16,
     marginTop: 28,
     borderWidth: 1,
-    borderColor: BORDER_BRONZE,
+    borderColor: CARD_BORDER_COLOR,
   },
   input: {
     width: '100%',
@@ -219,18 +218,20 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: BORDER_INSET,
+    borderColor: BORDER_BRONZE,
   },
   loginCta: {
     marginTop: 8,
   },
   ctaPrimary: {
     width: '100%',
-    backgroundColor: CTA_SURFACE,
+    backgroundColor: CTA_PRIMARY,
     borderRadius: RADIUS_MD,
     paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(15,169,88,0.45)',
   },
   ctaPressed: {
     opacity: 0.88,
@@ -240,9 +241,9 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   ctaPrimaryLabel: {
-    color: CTA_ON_LIGHT,
+    color: CTA_ON_PRIMARY,
     fontSize: 17,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
 });

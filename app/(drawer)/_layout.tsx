@@ -8,8 +8,8 @@ import { DrawerMenuButton } from '@/components/drawer-menu-button';
 import { ShellHeaderTitle } from '@/components/shell-header-title';
 import { readStaffIdOrNull } from '@/lib/mobile-session-read';
 import {
-  BORDER_INSET_SOFT,
-  GOLD_LIGHT,
+  ACCENT_CREAM,
+  BORDER_WARM_SOFT,
   OVERLAY_SCRIM,
   SHELL,
   SPINNER_TINT,
@@ -77,17 +77,17 @@ export default function DrawerLayout() {
         headerStyle: {
           backgroundColor: SURFACE_HEADER,
           borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: BORDER_INSET_SOFT,
+          borderBottomColor: BORDER_WARM_SOFT,
         },
         headerShadowVisible: false,
-        headerTintColor: GOLD_LIGHT,
+        headerTintColor: ACCENT_CREAM,
         drawerStyle: {
           width: drawerWidth,
           backgroundColor: SHELL,
         },
         drawerType: 'front',
         overlayColor: OVERLAY_SCRIM,
-        drawerActiveTintColor: GOLD_LIGHT,
+        drawerActiveTintColor: ACCENT_CREAM,
         drawerInactiveTintColor: TEXT_MUTED,
       }}>
       <Drawer.Screen

@@ -3,7 +3,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 
-import { BORDER_BRONZE, GOLD_LIGHT, SURFACE_MEDIUM } from '@/constants/shell-theme';
+import { ACCENT_CREAM, BORDER_BRONZE, SURFACE_MEDIUM } from '@/constants/shell-theme';
 
 /**
  * Pulsante menu integrato nella top bar (non icona “appiccicata” al bordo).
@@ -17,7 +17,7 @@ export function DrawerMenuButton() {
       accessibilityLabel="Apri menu"
       onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
       style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-      <MaterialIcons name="menu" size={22} color={GOLD_LIGHT} />
+      <MaterialIcons name="menu" size={22} color={ACCENT_CREAM} />
     </Pressable>
   );
 }

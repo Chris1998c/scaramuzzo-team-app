@@ -15,14 +15,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DRAWER_SCREEN_PADDING_HORIZONTAL,
   DRAWER_SCREEN_PADDING_TOP,
+  RADIUS_LG,
+  RADIUS_MD,
 } from '@/constants/shell-layout';
 import {
-  BORDER_INSET_SOFT,
-  CTA_ON_LIGHT,
+  ACCENT_CREAM,
+  CARD_BORDER_COLOR,
+  CTA_ON_PRIMARY,
+  CTA_PRIMARY,
   GOLD_EDGE,
-  GOLD_LIGHT,
   GOLD_RIM,
   POSITIVE,
+  POSITIVE_BORDER,
   SHELL,
   SPINNER_TINT,
   SURFACE_ACTION,
@@ -40,9 +44,6 @@ import {
   type AttendanceView,
 } from '@/lib/mobile-attendance';
 import { readStaffIdOrNull } from '@/lib/mobile-session-read';
-
-const RADIUS_LG = 24;
-const RADIUS_MD = 20;
 
 function dashTime(value: string | null): string {
   return value ?? '—';
@@ -192,8 +193,8 @@ export default function AttendanceScreen() {
           },
         ]}>
         <View style={styles.errorPanel}>
-          <Text style={styles.errorKicker}>Errore</Text>
-          <Text style={styles.errorBody}>{error}</Text>
+          <Text style={styles.errorTitle}>Presenze non disponibili</Text>
+          <Text style={styles.errorBody}>Riprova più tardi</Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.retryBtn, pressed && styles.pressed]}
@@ -268,7 +269,7 @@ export default function AttendanceScreen() {
           ) : null}
           <Pressable
             style={({ pressed }) => [
-              v.status === 'out' ? styles.ctaGold : styles.ctaOutlineGold,
+              v.status === 'out' ? styles.ctaPrimary : styles.ctaOutlineGold,
               (pressed || clockBusy) && styles.ctaPressed,
               clockBusy && styles.ctaDisabled,
             ]}
@@ -276,13 +277,13 @@ export default function AttendanceScreen() {
             disabled={clockBusy}>
             {clockBusy ? (
               <View style={styles.ctaBusyRow}>
-                <ActivityIndicator color={v.status === 'out' ? CTA_ON_LIGHT : GOLD_LIGHT} />
-                <Text style={v.status === 'out' ? styles.ctaGoldLabel : styles.ctaOutlineGoldLabel}>
+                <ActivityIndicator color={v.status === 'out' ? CTA_ON_PRIMARY : ACCENT_CREAM} />
+                <Text style={v.status === 'out' ? styles.ctaPrimaryLabel : styles.ctaOutlineGoldLabel}>
                   {mainButtonLabel}
                 </Text>
               </View>
             ) : (
-              <Text style={v.status === 'out' ? styles.ctaGoldLabel : styles.ctaOutlineGoldLabel}>
+              <Text style={v.status === 'out' ? styles.ctaPrimaryLabel : styles.ctaOutlineGoldLabel}>
                 {mainButtonLabel}
               </Text>
             )}
@@ -323,7 +324,9 @@ export default function AttendanceScreen() {
           )}
         </View>
 
-        {error ? <Text style={styles.inlineError}>Aggiornamento non riuscito: {error}</Text> : null}
+        {error ? (
+          <Text style={styles.inlineError}>Aggiornamento non riuscito. Riprova più tardi.</Text>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -360,15 +363,15 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE_ELEVATED,
     borderRadius: RADIUS_LG,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
   },
-  errorKicker: {
-    color: GOLD_LIGHT,
-    fontSize: 10,
+  errorTitle: {
+    color: TEXT_MAIN,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
+    lineHeight: 22,
     marginBottom: 8,
+    letterSpacing: -0.2,
   },
   errorBody: {
     color: TEXT_MUTED,
@@ -378,14 +381,14 @@ const styles = StyleSheet.create({
   retryBtn: {
     marginTop: 20,
     borderWidth: 1,
-    borderColor: GOLD_RIM,
+    borderColor: POSITIVE_BORDER,
     paddingHorizontal: 28,
     paddingVertical: 16,
     borderRadius: 999,
     backgroundColor: SURFACE_CARD,
   },
   retryLabel: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: 0.5,
@@ -400,7 +403,7 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
     borderLeftWidth: 3,
     borderLeftColor: GOLD_EDGE,
   },
@@ -435,7 +438,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 28,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
   },
   presenceErrorBox: {
     marginBottom: 14,
@@ -466,16 +469,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  ctaGold: {
+  ctaPrimary: {
     width: '100%',
-    backgroundColor: GOLD_LIGHT,
+    backgroundColor: CTA_PRIMARY,
     borderRadius: RADIUS_MD,
     paddingVertical: 17,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: POSITIVE_BORDER,
   },
-  ctaGoldLabel: {
-    color: CTA_ON_LIGHT,
+  ctaPrimaryLabel: {
+    color: CTA_ON_PRIMARY,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.4,
@@ -504,7 +509,7 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   sectionHeading: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1.2,
@@ -519,7 +524,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 28,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -544,7 +549,7 @@ const styles = StyleSheet.create({
   },
   summaryRule: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: BORDER_INSET_SOFT,
+    backgroundColor: CARD_BORDER_COLOR,
     marginVertical: 10,
   },
   historyCard: {
@@ -554,7 +559,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: BORDER_INSET_SOFT,
+    borderColor: CARD_BORDER_COLOR,
   },
   historyEmpty: {
     color: TEXT_MUTED,
@@ -570,10 +575,10 @@ const styles = StyleSheet.create({
   },
   historyRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: BORDER_INSET_SOFT,
+    borderBottomColor: CARD_BORDER_COLOR,
   },
   historyKind: {
-    color: GOLD_LIGHT,
+    color: ACCENT_CREAM,
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: 1.2,
