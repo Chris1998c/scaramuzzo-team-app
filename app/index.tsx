@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { readStaffIdOrNull } from '@/lib/mobile-session-read';
+import { requireValidMobileSession } from '@/lib/mobile-session-read';
 import { SHELL, SPINNER_TINT } from '@/constants/shell-theme';
 
 /**
@@ -15,9 +15,9 @@ export default function Index() {
     let cancelled = false;
     (async () => {
       try {
-        const staffId = await readStaffIdOrNull();
+        const session = await requireValidMobileSession();
         if (cancelled) return;
-        if (staffId !== null) {
+        if (session !== null) {
           router.replace('/(drawer)/home');
         } else {
           router.replace('/login');

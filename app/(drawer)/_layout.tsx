@@ -6,7 +6,7 @@ import { ActivityIndicator, StyleSheet, useWindowDimensions, View } from 'react-
 import { AppDrawerContent } from '@/components/app-drawer-content';
 import { DrawerMenuButton } from '@/components/drawer-menu-button';
 import { ShellHeaderTitle } from '@/components/shell-header-title';
-import { readStaffIdOrNull } from '@/lib/mobile-session-read';
+import { requireValidMobileSession } from '@/lib/mobile-session-read';
 import {
   ACCENT_CREAM,
   BORDER_WARM_SOFT,
@@ -26,9 +26,9 @@ export default function DrawerLayout() {
     let cancelled = false;
     (async () => {
       try {
-        const staffId = await readStaffIdOrNull();
+        const session = await requireValidMobileSession();
         if (cancelled) return;
-        if (staffId === null) {
+        if (session === null) {
           router.replace('/login');
           return;
         }

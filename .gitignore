@@ -42,3 +42,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Legacy mock backend (non usato in produzione Team App)
+server-app/.next/
+server-app/node_modules/

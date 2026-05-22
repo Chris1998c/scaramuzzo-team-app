@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AUTH_STORAGE_KEYS } from '@/constants/auth-storage';
 import { API_BASE_URL } from '@/constants/api';
 import { readMobileErrorPayload } from '@/lib/api-session';
-import { readStaffIdOrNull } from '@/lib/mobile-session-read';
+import { requireValidMobileSession } from '@/lib/mobile-session-read';
 import {
   collaboratorNameFromLoginPayload,
   effectiveLoginPayload,
@@ -42,8 +42,8 @@ export default function LoginScreen() {
 
   const goHomeIfSession = useCallback(async () => {
     try {
-      const staffId = await readStaffIdOrNull();
-      if (staffId !== null) {
+      const session = await requireValidMobileSession();
+      if (session !== null) {
         router.replace('/(drawer)/home');
       }
     } catch {
@@ -102,13 +102,18 @@ export default function LoginScreen() {
 
       const accessToken =
         typeof payload.access_token === 'string' ? payload.access_token.trim() : '';
+      if (!accessToken) {
+        Alert.alert(
+          'Accesso non disponibile',
+          'Il server non ha emesso un token di sessione. Verifica la configurazione mobile con l\'amministratore.'
+        );
+        return;
+      }
+
       const tokenType =
         typeof payload.token_type === 'string' ? payload.token_type.trim() : '';
-      if (accessToken) {
-        await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.accessToken, accessToken);
-      } else {
-        await SecureStore.deleteItemAsync(AUTH_STORAGE_KEYS.accessToken).catch(() => {});
-      }
+
+      await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.accessToken, accessToken);
       if (tokenType) {
         await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.tokenType, tokenType);
       } else {

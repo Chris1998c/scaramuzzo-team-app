@@ -7,7 +7,6 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AUTH_STORAGE_KEYS } from '@/constants/auth-storage';
-import { postMobileJson } from '@/lib/api-session';
 import {
   fetchMobileStats,
   STATS_PERIOD_THIS_MONTH,
@@ -35,7 +34,7 @@ import {
   RADIUS_MD,
 } from '@/constants/shell-layout';
 import { firstNameFromDisplayName } from '@/lib/collaborator-identity';
-import { readStaffIdOrNull } from '@/lib/mobile-session-read';
+import { requireValidMobileSession } from '@/lib/mobile-session-read';
 import {
   ACCENT_CREAM,
   CARD_BORDER_COLOR,
@@ -56,39 +55,6 @@ import {
 const AGENDA_PREVIEW_MAX = 5;
 
 const MSG_ATT_LOAD = 'Impossibile caricare le presenze';
-
-function isDashboardPayloadUsable(t: Record<string, unknown>): boolean {
-  return (
-    Object.prototype.hasOwnProperty.call(t, 'services_count') ||
-    Object.prototype.hasOwnProperty.call(t, 'clients_count') ||
-    Object.prototype.hasOwnProperty.call(t, 'products_count') ||
-    Object.prototype.hasOwnProperty.call(t, 'worked_days_count')
-  );
-}
-
-function extractDashboardKpis(raw: Record<string, unknown>): DashboardStats | null {
-  if (isDashboardPayloadUsable(raw)) {
-    return {
-      services_count: raw.services_count,
-      clients_count: raw.clients_count,
-      products_count: raw.products_count,
-      worked_days_count: raw.worked_days_count,
-    };
-  }
-  const nested = raw.data;
-  if (nested != null && typeof nested === 'object' && !Array.isArray(nested)) {
-    const d = nested as Record<string, unknown>;
-    if (isDashboardPayloadUsable(d)) {
-      return {
-        services_count: d.services_count,
-        clients_count: d.clients_count,
-        products_count: d.products_count,
-        worked_days_count: d.worked_days_count,
-      };
-    }
-  }
-  return null;
-}
 
 function dashAttendance(value: string | null | undefined): string {
   return value == null || value === '' ? '—' : value;
@@ -130,29 +96,9 @@ export default function HomeScreen() {
   const [clockError, setClockError] = useState<string | null>(null);
   const [statsUnavailable, setStatsUnavailable] = useState(false);
 
-  const fetchDashboardStats = async (staffId: number) => {
+  const fetchHomeMonthStats = async (staffId: number) => {
     setStatsUnavailable(false);
     try {
-      const dashResult = await postMobileJson<Record<string, unknown>>('/api/mobile/dashboard/stats', {
-        staff_id: staffId,
-      });
-
-      if (dashResult.kind === 'unauthorized') {
-        return;
-      }
-
-      if (dashResult.kind === 'success' && dashResult.data != null && typeof dashResult.data === 'object') {
-        const t = dashResult.data as Record<string, unknown>;
-        if (t.success !== false) {
-          const kpis = extractDashboardKpis(t);
-          if (kpis) {
-            setDashboardStats(kpis);
-            setStatsUnavailable(false);
-            return;
-          }
-        }
-      }
-
       const statRes = await fetchMobileStats(staffId, 'month');
       if (statRes.ok) {
         setDashboardStats({
@@ -177,11 +123,12 @@ export default function HomeScreen() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const staffId = await readStaffIdOrNull();
-        if (staffId === null) {
+        const session = await requireValidMobileSession();
+        if (session === null) {
           router.replace('/login');
           return;
         }
+        const { staffId } = session;
 
         const [storedName, storedStaffCode] = await Promise.all([
           SecureStore.getItemAsync(AUTH_STORAGE_KEYS.collaboratorName),
@@ -207,7 +154,7 @@ export default function HomeScreen() {
           }
         };
 
-        await Promise.all([loadAttendance(), fetchDashboardStats(staffId)]);
+        await Promise.all([loadAttendance(), fetchHomeMonthStats(staffId)]);
 
         setStatsFetched(true);
         setSessionReady(true);
@@ -224,9 +171,9 @@ export default function HomeScreen() {
       let cancelled = false;
       (async () => {
         try {
-          const staffId = await readStaffIdOrNull();
+          const session = await requireValidMobileSession();
           if (cancelled) return;
-          if (staffId === null) {
+          if (session === null) {
             router.replace('/login');
             return;
           }
@@ -247,8 +194,14 @@ export default function HomeScreen() {
       if (!sessionReady) return;
       let cancelled = false;
       (async () => {
-        const staffId = await readStaffIdOrNull();
-        if (staffId === null || cancelled) return;
+        const session = await requireValidMobileSession();
+        if (session === null || cancelled) {
+          if (!cancelled) {
+            router.replace('/login');
+          }
+          return;
+        }
+        const { staffId } = session;
 
         setAgendaFetchState('loading');
         const res = await fetchMyAppointments(staffId);
@@ -273,7 +226,7 @@ export default function HomeScreen() {
       return () => {
         cancelled = true;
       };
-    }, [sessionReady])
+    }, [sessionReady, router])
   );
 
   useFocusEffect(
@@ -281,8 +234,14 @@ export default function HomeScreen() {
       if (!sessionReady) return;
       let cancelled = false;
       (async () => {
-        const staffId = await readStaffIdOrNull();
-        if (staffId === null || cancelled) return;
+        const session = await requireValidMobileSession();
+        if (session === null || cancelled) {
+          if (!cancelled) {
+            router.replace('/login');
+          }
+          return;
+        }
+        const { staffId } = session;
 
         const result = await fetchAttendance(staffId);
         if (cancelled) return;
@@ -296,7 +255,7 @@ export default function HomeScreen() {
       return () => {
         cancelled = true;
       };
-    }, [sessionReady])
+    }, [sessionReady, router])
   );
 
   const handleClockAttendance = async () => {
@@ -318,12 +277,13 @@ export default function HomeScreen() {
         lastActionTime: formatClockNowHHmm(),
       });
 
-      const staffId = await readStaffIdOrNull();
-      if (staffId === null) {
+      const session = await requireValidMobileSession();
+      if (session === null) {
         setAttendanceView(prev);
-        setClockError('Staff ID non valido');
+        router.replace('/login');
         return;
       }
+      const { staffId } = session;
 
       const result = await clockAttendance(staffId);
       if (!result.ok) {

@@ -39,7 +39,14 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Scaramuzzo usa la posizione solo per verificare la timbratura in salone.",
+          "locationAlwaysAndWhenInUsePermission": "Scaramuzzo usa la posizione solo per verificare la timbratura in salone."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

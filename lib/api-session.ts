@@ -7,9 +7,9 @@ import { clearSession } from '@/lib/session';
 
 /**
  * Client HTTP mobile post-login (`postMobileJson`).
- * Contratto: Bearer-first — se `access_token` è in SecureStore → `Authorization: Bearer …`.
- * Il body continua a includere `staff_id` dove già previsto (compat Manager senza token).
- * Login resta su `fetch` diretto a `/api/mobile/login` (nessun Bearer, 401 senza clearSession globale).
+ * Contratto Manager: `Authorization: Bearer <access_token>` obbligatorio sulle route protette;
+ * il body può ancora includere `staff_id` dove previsto (deve coincidere con il JWT).
+ * Login resta su `fetch` diretto a `/api/mobile/login` (nessun Bearer; 401 credenziali ≠ logout globale).
  */
 
 async function headersForMobilePost(): Promise<Record<string, string>> {
