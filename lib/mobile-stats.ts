@@ -1,7 +1,5 @@
-import * as SecureStore from 'expo-secure-store';
-
-import { AUTH_STORAGE_KEYS } from '@/constants/auth-storage';
 import { postMobileJson, readMobileErrorPayload } from '@/lib/api-session';
+import { withCurrentSalonId } from '@/lib/mobile-salon-session';
 
 /** Preset periodo: giorno corrente o mese di calendario corrente (locale). */
 export type StatsPeriodPreset = 'today' | 'month';
@@ -449,17 +447,11 @@ export async function fetchMobileStats(
 > {
   const range = getStatsRange(preset);
   try {
-    const body: Record<string, unknown> = {
+    const body = await withCurrentSalonId({
       staff_id: staffId,
       from: formatLocalYmd(range.from),
       to: formatLocalYmd(range.to),
-    };
-
-    const salonRaw = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.salonId);
-    if (salonRaw?.trim()) {
-      const n = Number(salonRaw);
-      body.salon_id = Number.isFinite(n) ? n : salonRaw.trim();
-    }
+    });
 
     const result = await postMobileJson<Record<string, unknown>>('/api/mobile/stats', body);
 

@@ -38,6 +38,11 @@ import {
   TEXT_NEUTRAL,
 } from '@/constants/shell-theme';
 import {
+  clockAttendanceUiErrorsFromResult,
+  emptyClockAttendanceUiErrors,
+  gpsCatchUiErrors,
+} from '@/lib/clock-attendance-ui';
+import {
   clockAttendance,
   fetchAttendance,
   formatClockNowHHmm,
@@ -57,7 +62,9 @@ export default function AttendanceScreen() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<AttendanceView | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [gpsSubtitle, setGpsSubtitle] = useState<string | null>(null);
   const [distanceError, setDistanceError] = useState<string | null>(null);
+  const [distanceSubtitle, setDistanceSubtitle] = useState<string | null>(null);
   const [clockError, setClockError] = useState<string | null>(null);
 
   const load = useCallback(
@@ -118,9 +125,12 @@ export default function AttendanceScreen() {
     try {
       setClockBusy(true);
       setError(null);
-      setGpsError(null);
-      setDistanceError(null);
-      setClockError(null);
+      const cleared = emptyClockAttendanceUiErrors();
+      setGpsError(cleared.gpsError);
+      setGpsSubtitle(cleared.gpsSubtitle);
+      setDistanceError(cleared.distanceError);
+      setDistanceSubtitle(cleared.distanceSubtitle);
+      setClockError(cleared.clockError);
       setView({
         ...prev,
         status: prev.status === 'in' ? 'out' : 'in',
@@ -139,13 +149,12 @@ export default function AttendanceScreen() {
         if (result.sessionEnded) {
           return;
         }
-        if (result.httpStatus === 403) {
-          setDistanceError(
-            result.error?.trim() || 'Sei troppo lontano dal salone per timbrare'
-          );
-        } else {
-          setClockError(result.error ?? 'Impossibile registrare la timbratura.');
-        }
+        const uiErr = clockAttendanceUiErrorsFromResult(result);
+        setGpsError(uiErr.gpsError);
+        setGpsSubtitle(uiErr.gpsSubtitle);
+        setDistanceError(uiErr.distanceError);
+        setDistanceSubtitle(uiErr.distanceSubtitle);
+        setClockError(uiErr.clockError);
         return;
       }
 
@@ -156,9 +165,14 @@ export default function AttendanceScreen() {
       } else if (!refetch.sessionEnded) {
         setError(refetch.error ?? 'Impossibile caricare le presenze.');
       }
-    } catch {
+    } catch (err) {
       setView(prev);
-      setGpsError('Posizione non disponibile');
+      const uiErr = gpsCatchUiErrors(err);
+      setGpsError(uiErr.gpsError);
+      setGpsSubtitle(uiErr.gpsSubtitle);
+      setDistanceError(uiErr.distanceError);
+      setDistanceSubtitle(uiErr.distanceSubtitle);
+      setClockError(uiErr.clockError);
     } finally {
       setClockBusy(false);
     }
@@ -251,15 +265,17 @@ export default function AttendanceScreen() {
           {gpsError ? (
             <View style={styles.presenceErrorBox} accessibilityRole="alert">
               <Text style={styles.presenceErrorTitle}>{gpsError}</Text>
-              <Text style={styles.presenceErrorSub}>Attiva il GPS per timbrare</Text>
+              {gpsSubtitle ? (
+                <Text style={styles.presenceErrorSub}>{gpsSubtitle}</Text>
+              ) : null}
             </View>
           ) : null}
           {distanceError ? (
             <View style={styles.presenceErrorBox} accessibilityRole="alert">
               <Text style={styles.presenceErrorTitle}>{distanceError}</Text>
-              <Text style={styles.presenceErrorSub}>
-                Avvicinati entro 500 metri per timbrare
-              </Text>
+              {distanceSubtitle ? (
+                <Text style={styles.presenceErrorSub}>{distanceSubtitle}</Text>
+              ) : null}
             </View>
           ) : null}
           {clockError ? (

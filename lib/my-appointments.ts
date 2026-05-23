@@ -1,5 +1,6 @@
 import { formatYmdInEuropeRome } from '@/lib/date-rome';
 import { postMobileJson, readMobileErrorPayload } from '@/lib/api-session';
+import { withCurrentSalonId } from '@/lib/mobile-salon-session';
 
 /** Riga appuntamento — allineata a POST /api/mobile/my-appointments */
 export type MyAppointmentRow = {
@@ -73,11 +74,12 @@ export async function fetchMyAppointments(
   | { ok: false; error?: string; sessionEnded?: true }
 > {
   try {
+    const body = await withCurrentSalonId({ staff_id: staffId });
     const result = await postMobileJson<{
       success?: boolean;
       rows?: MyAppointmentRow[];
       error?: string;
-    }>('/api/mobile/my-appointments', { staff_id: staffId });
+    }>('/api/mobile/my-appointments', body);
 
     if (result.kind === 'unauthorized') {
       return { ok: false, sessionEnded: true };

@@ -1,6 +1,13 @@
 import * as Location from 'expo-location';
 
 import { postMobileJson, readMobileErrorPayload } from '@/lib/api-session';
+import {
+  mapClockAttendanceErrorUx,
+  type ClockAttendanceErrorUx,
+} from '@/lib/attendance-clock-errors';
+import { getOrCreateDeviceId } from '@/lib/device-id';
+import { getMobileAppVersion } from '@/lib/mobile-app-version';
+import { withCurrentSalonId } from '@/lib/mobile-salon-session';
 
 /** Presenze: lettura POST /api/mobile/attendance; timbratura solo POST .../clock (GPS). Nessun toggle legacy in UI. */
 
@@ -232,9 +239,8 @@ export async function fetchAttendance(
   staffId: number
 ): Promise<{ ok: true; view: AttendanceView } | { ok: false; error?: string; sessionEnded?: true }> {
   try {
-    const result = await postMobileJson<Record<string, unknown>>('/api/mobile/attendance', {
-      staff_id: staffId,
-    });
+    const body = await withCurrentSalonId({ staff_id: staffId });
+    const result = await postMobileJson<Record<string, unknown>>('/api/mobile/attendance', body);
 
     if (result.kind === 'unauthorized') {
       return { ok: false, sessionEnded: true };
@@ -273,7 +279,13 @@ export async function fetchAttendance(
 
 export type ClockAttendanceResult =
   | { ok: true }
-  | { ok: false; error?: string; sessionEnded?: true; httpStatus?: number };
+  | {
+      ok: false;
+      error?: string;
+      errorUx?: ClockAttendanceErrorUx;
+      sessionEnded?: true;
+      httpStatus?: number;
+    };
 
 /**
  * Timbratura con GPS: POST /api/mobile/attendance/clock
@@ -295,23 +307,41 @@ export async function clockAttendance(staffId: number): Promise<ClockAttendanceR
     throw new Error('GPS_FAILED');
   }
 
-  const result = await postMobileJson<Record<string, unknown>>('/api/mobile/attendance/clock', {
+  const [deviceId, appVersion] = await Promise.all([getOrCreateDeviceId(), Promise.resolve(getMobileAppVersion())]);
+
+  const latitude = loc.coords.latitude;
+  const longitude = loc.coords.longitude;
+  const clockBody = await withCurrentSalonId({
     staff_id: staffId,
-    lat: loc.coords.latitude,
-    lng: loc.coords.longitude,
-    accuracy: loc.coords.accuracy,
+    latitude,
+    longitude,
+    lat: latitude,
+    lng: longitude,
+    accuracy: loc.coords.accuracy ?? null,
     isMocked: loc.mocked === true,
+    device_id: deviceId,
+    app_version: appVersion,
   });
+
+  const result = await postMobileJson<Record<string, unknown>>(
+    '/api/mobile/attendance/clock',
+    clockBody
+  );
 
   if (result.kind === 'unauthorized') {
     return { ok: false, sessionEnded: true };
   }
 
   if (result.kind === 'error') {
+    const errorUx = mapClockAttendanceErrorUx(
+      result.status,
+      result.data,
+      readMobileErrorPayload(result.data) ?? undefined
+    );
     return {
       ok: false,
-      error:
-        readMobileErrorPayload(result.data) ?? 'Impossibile registrare la timbratura.',
+      error: errorUx.title,
+      errorUx,
       httpStatus: result.status,
     };
   }
@@ -323,9 +353,15 @@ export async function clockAttendance(staffId: number): Promise<ClockAttendanceR
 
   const top = data as Record<string, unknown>;
   if (top.success === false) {
+    const errorUx = mapClockAttendanceErrorUx(
+      undefined,
+      data,
+      readMobileErrorPayload(data) ?? undefined
+    );
     return {
       ok: false,
-      error: readMobileErrorPayload(data) ?? 'Impossibile registrare la timbratura.',
+      error: errorUx.title,
+      errorUx,
     };
   }
 

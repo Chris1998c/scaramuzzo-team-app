@@ -13,12 +13,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AUTH_STORAGE_KEYS } from '@/constants/auth-storage';
 import { API_BASE_URL } from '@/constants/api';
-import { readMobileErrorPayload } from '@/lib/api-session';
-import { requireValidMobileSession } from '@/lib/mobile-session-read';
 import {
   collaboratorNameFromLoginPayload,
   effectiveLoginPayload,
 } from '@/lib/collaborator-identity';
+import { loginErrorUxForStatus } from '@/lib/mobile-login-errors';
+import { persistLoginSalonSession } from '@/lib/mobile-salon-session';
+import { requireValidMobileSession } from '@/lib/mobile-session-read';
 import {
   ACCENT_CREAM,
   BORDER_BRONZE,
@@ -81,22 +82,20 @@ export default function LoginScreen() {
       }
 
       if (!response.ok) {
-        const message =
-          readMobileErrorPayload(data) ?? 'Errore durante il login';
-        Alert.alert(message);
+        const { title, message } = loginErrorUxForStatus(response.status, data);
+        Alert.alert(title, message);
         return;
       }
 
       const payload = effectiveLoginPayload(data);
       const staffIdVal = String(payload.staff_id ?? '');
-      const salonIdVal = String(payload.salon_id ?? '');
       const nameFromApi = collaboratorNameFromLoginPayload(payload);
       const staffCodeFromApi =
         payload.staff_code != null ? String(payload.staff_code).trim() : '';
       const staffCodeToSave = staffCodeFromApi || code.trim();
 
       await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.staffId, staffIdVal);
-      await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.salonId, salonIdVal);
+      await persistLoginSalonSession(payload);
       await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.collaboratorName, nameFromApi);
       await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.staffCode, staffCodeToSave);
 

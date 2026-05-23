@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { DrawerContentScrollView, type DrawerContentComponentProps } from '@react-navigation/drawer';
 import { router, usePathname } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,6 +18,10 @@ import {
   TEXT_MAIN,
   TEXT_MUTED,
 } from '@/constants/shell-theme';
+import {
+  getCurrentMobileSalonId,
+  hasMultipleSalons,
+} from '@/lib/mobile-salon-session';
 import { clearSession } from '@/lib/session';
 
 function NavRow({
@@ -53,6 +58,21 @@ export function AppDrawerContent(props: DrawerContentComponentProps) {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const { navigation } = props;
+  const [activeSalonId, setActiveSalonId] = useState<number | null>(null);
+  const [showSalonHint, setShowSalonHint] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [multi, salonId] = await Promise.all([hasMultipleSalons(), getCurrentMobileSalonId()]);
+      if (cancelled) return;
+      setShowSalonHint(multi);
+      setActiveSalonId(salonId);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   const isStats = pathname.includes('stats');
   const isAppointments = pathname.includes('appointments');
@@ -77,6 +97,13 @@ export function AppDrawerContent(props: DrawerContentComponentProps) {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
         <ShellDrawerHeaderBranding />
+
+        {showSalonHint && activeSalonId !== null ? (
+          <View style={styles.salonHint}>
+            <Text style={styles.salonHintLabel}>Salone attivo</Text>
+            <Text style={styles.salonHintValue}>#{activeSalonId}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.navCardOuter}>
           <Text style={styles.navCardKicker}>Menu</Text>
@@ -131,6 +158,32 @@ const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: 16,
     paddingBottom: 20,
+  },
+  salonHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    marginBottom: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: SURFACE_CARD,
+    borderWidth: 1,
+    borderColor: BORDER_BRONZE,
+  },
+  salonHintLabel: {
+    color: TEXT_MUTED,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  salonHintValue: {
+    color: ACCENT_CREAM,
+    fontSize: 13,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
   navCardOuter: {
     backgroundColor: SURFACE_CARD,
