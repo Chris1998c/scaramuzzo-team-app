@@ -66,6 +66,7 @@ export default function AttendanceScreen() {
   const [distanceError, setDistanceError] = useState<string | null>(null);
   const [distanceSubtitle, setDistanceSubtitle] = useState<string | null>(null);
   const [clockError, setClockError] = useState<string | null>(null);
+  const [clockSuccessMessage, setClockSuccessMessage] = useState<string | null>(null);
 
   const load = useCallback(
     async (isRefresh: boolean) => {
@@ -131,6 +132,7 @@ export default function AttendanceScreen() {
       setDistanceError(cleared.distanceError);
       setDistanceSubtitle(cleared.distanceSubtitle);
       setClockError(cleared.clockError);
+      setClockSuccessMessage(null);
       setView({
         ...prev,
         status: prev.status === 'in' ? 'out' : 'in',
@@ -157,6 +159,8 @@ export default function AttendanceScreen() {
         setClockError(uiErr.clockError);
         return;
       }
+
+      setClockSuccessMessage(result.successMessage);
 
       const refetch = await fetchAttendance(staffId);
       if (refetch.ok) {
@@ -262,6 +266,11 @@ export default function AttendanceScreen() {
         </View>
 
         <View style={styles.actionCard}>
+          {clockSuccessMessage ? (
+            <View style={styles.presenceSuccessBox} accessibilityRole="text">
+              <Text style={styles.presenceSuccessTitle}>{clockSuccessMessage}</Text>
+            </View>
+          ) : null}
           {gpsError ? (
             <View style={styles.presenceErrorBox} accessibilityRole="alert">
               <Text style={styles.presenceErrorTitle}>{gpsError}</Text>
@@ -455,6 +464,16 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     borderWidth: 1,
     borderColor: CARD_BORDER_COLOR,
+  },
+  presenceSuccessBox: {
+    marginBottom: 14,
+  },
+  presenceSuccessTitle: {
+    color: POSITIVE,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.15,
+    lineHeight: 21,
   },
   presenceErrorBox: {
     marginBottom: 14,

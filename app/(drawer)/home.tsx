@@ -101,6 +101,7 @@ export default function HomeScreen() {
   const [distanceError, setDistanceError] = useState<string | null>(null);
   const [distanceSubtitle, setDistanceSubtitle] = useState<string | null>(null);
   const [clockError, setClockError] = useState<string | null>(null);
+  const [clockSuccessMessage, setClockSuccessMessage] = useState<string | null>(null);
   const [statsUnavailable, setStatsUnavailable] = useState(false);
 
   const fetchHomeMonthStats = async (staffId: number) => {
@@ -281,6 +282,7 @@ export default function HomeScreen() {
       setDistanceError(cleared.distanceError);
       setDistanceSubtitle(cleared.distanceSubtitle);
       setClockError(cleared.clockError);
+      setClockSuccessMessage(null);
       setAttendanceView({
         ...prev,
         status: prev.status === 'in' ? 'out' : 'in',
@@ -309,6 +311,8 @@ export default function HomeScreen() {
         setClockError(uiErr.clockError);
         return;
       }
+
+      setClockSuccessMessage(result.successMessage);
 
       const refetch = await fetchAttendance(staffId);
       if (refetch.ok) {
@@ -399,6 +403,11 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.actionCardPremium}>
+              {clockSuccessMessage ? (
+                <View style={styles.presenceSuccessBox} accessibilityRole="text">
+                  <Text style={styles.presenceSuccessTitle}>{clockSuccessMessage}</Text>
+                </View>
+              ) : null}
               {gpsError ? (
                 <View style={styles.presenceErrorBox} accessibilityRole="alert">
                   <Text style={styles.presenceErrorTitle}>{gpsError}</Text>
@@ -669,6 +678,16 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     borderWidth: 1,
     borderColor: CARD_BORDER_COLOR,
+  },
+  presenceSuccessBox: {
+    marginBottom: 14,
+  },
+  presenceSuccessTitle: {
+    color: POSITIVE,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.15,
+    lineHeight: 21,
   },
   presenceErrorBox: {
     marginBottom: 14,

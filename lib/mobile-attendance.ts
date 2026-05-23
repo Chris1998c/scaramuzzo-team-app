@@ -5,6 +5,11 @@ import {
   mapClockAttendanceErrorUx,
   type ClockAttendanceErrorUx,
 } from '@/lib/attendance-clock-errors';
+import {
+  formatClockSuccessMessage,
+  parseClockDetectedSalon,
+  type ClockDetectedSalon,
+} from '@/lib/clock-detected-salon';
 import { getOrCreateDeviceId } from '@/lib/device-id';
 import { getMobileAppVersion } from '@/lib/mobile-app-version';
 import { withCurrentSalonId } from '@/lib/mobile-salon-session';
@@ -277,8 +282,10 @@ export async function fetchAttendance(
   }
 }
 
+export type { ClockDetectedSalon } from '@/lib/clock-detected-salon';
+
 export type ClockAttendanceResult =
-  | { ok: true }
+  | { ok: true; detectedSalon: ClockDetectedSalon | null; successMessage: string }
   | {
       ok: false;
       error?: string;
@@ -365,5 +372,10 @@ export async function clockAttendance(staffId: number): Promise<ClockAttendanceR
     };
   }
 
-  return { ok: true };
+  const detectedSalon = parseClockDetectedSalon(data);
+  return {
+    ok: true,
+    detectedSalon,
+    successMessage: formatClockSuccessMessage(detectedSalon),
+  };
 }
