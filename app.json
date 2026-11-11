@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "green.scaramuzzo.team",
       "adaptiveIcon": {
         "backgroundColor": "#140905",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,7 +20,13 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "static",
@@ -51,6 +58,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7445e35f-d1da-4629-b353-5ad52dcc91ab"
+      }
+    },
+    "owner": "chris1998"
   }
 }
