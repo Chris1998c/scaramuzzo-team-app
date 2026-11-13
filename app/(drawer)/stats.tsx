@@ -107,7 +107,15 @@ export default function StatsScreen() {
   );
 
   useEffect(() => {
-    void load(false);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        void load(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   const onRefresh = useCallback(() => {

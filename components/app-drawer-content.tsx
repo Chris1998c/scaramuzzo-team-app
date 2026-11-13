@@ -1,6 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { DrawerContentScrollView, type DrawerContentComponentProps } from '@react-navigation/drawer';
 import { router, usePathname } from 'expo-router';
+import {
+  DrawerContentScrollView,
+  type DrawerContentComponentProps,
+} from 'expo-router/drawer';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

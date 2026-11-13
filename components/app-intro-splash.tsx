@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -22,8 +22,8 @@ type Props = {
 export function AppIntroSplash({ onFinish }: Props) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const opacity = useRef(new Animated.Value(0)).current;
-  const logoScale = useRef(new Animated.Value(0.92)).current;
+  const [opacity] = useState(() => new Animated.Value(0));
+  const [logoScale] = useState(() => new Animated.Value(0.92));
 
   const logoWidth = width * 0.66;
   const logoHeight = Math.max(logoWidth * 0.36, 96);
@@ -67,7 +67,7 @@ export function AppIntroSplash({ onFinish }: Props) {
   return (
     <Animated.View
       pointerEvents="auto"
-      style={[styles.overlay, { opacity }]}>
+      style={[StyleSheet.absoluteFill, styles.overlay, { opacity }]}>
       <View
         style={[
           styles.center,
@@ -93,7 +93,6 @@ export function AppIntroSplash({ onFinish }: Props) {
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
     backgroundColor: SHELL,
     zIndex: 9999,
     elevation: 9999,

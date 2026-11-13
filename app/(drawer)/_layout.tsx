@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Drawer } from 'expo-router/drawer';
+import { Drawer, type DrawerContentComponentProps } from 'expo-router/drawer';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -16,6 +16,11 @@ import {
   SURFACE_HEADER,
   TEXT_MUTED,
 } from '@/constants/shell-theme';
+
+/** Schermata di default del drawer (ex initialRouteName). */
+export const unstable_settings = {
+  anchor: 'home',
+};
 
 export default function DrawerLayout() {
   const router = useRouter();
@@ -59,8 +64,7 @@ export default function DrawerLayout() {
 
   return (
     <Drawer
-      initialRouteName="home"
-      drawerContent={(props) => <AppDrawerContent {...props} />}
+      drawerContent={(props: DrawerContentComponentProps) => <AppDrawerContent {...props} />}
       screenOptions={{
         headerShown: true,
         headerLeft: () => <DrawerMenuButton />,
