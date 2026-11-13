@@ -1,5 +1,4 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 
@@ -9,13 +8,13 @@ import { ACCENT_CREAM, BORDER_BRONZE, SURFACE_MEDIUM } from '@/constants/shell-t
  * Pulsante menu integrato nella top bar (non icona “appiccicata” al bordo).
  */
 export function DrawerMenuButton() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<{ openDrawer: () => void }>();
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Apri menu"
-      onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+      onPress={() => navigation.openDrawer()}
       style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
       <MaterialIcons name="menu" size={22} color={ACCENT_CREAM} />
     </Pressable>
