@@ -2,7 +2,6 @@ import 'react-native-gesture-handler';
 
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as SecureStore from 'expo-secure-store';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,6 +9,7 @@ import 'react-native-reanimated';
 
 import { AppIntroSplash } from '@/components/app-intro-splash';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import * as SecureStorage from '@/lib/secure-storage';
 
 /** Fuori da AUTH_STORAGE_KEYS: non viene cancellato da clearSession. */
 const INTRO_SPLASH_SEEN_KEY = 'team_app_intro_splash_seen_v1';
@@ -22,7 +22,7 @@ export default function RootLayout() {
     let cancelled = false;
     (async () => {
       try {
-        const seen = await SecureStore.getItemAsync(INTRO_SPLASH_SEEN_KEY);
+        const seen = await SecureStorage.getItemAsync(INTRO_SPLASH_SEEN_KEY);
         if (!cancelled) {
           setIntroMode(seen === '1' ? 'hidden' : 'show');
         }
@@ -39,7 +39,7 @@ export default function RootLayout() {
 
   const onIntroFinish = useCallback(() => {
     setIntroMode('hidden');
-    void SecureStore.setItemAsync(INTRO_SPLASH_SEEN_KEY, '1').catch(() => {
+    void SecureStorage.setItemAsync(INTRO_SPLASH_SEEN_KEY, '1').catch(() => {
       /* best-effort */
     });
   }, []);

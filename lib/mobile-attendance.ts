@@ -300,9 +300,18 @@ export type ClockAttendanceResult =
  * Non esiste `toggleAttendance` nel client — usare solo questa funzione.
  */
 export async function clockAttendance(staffId: number): Promise<ClockAttendanceResult> {
-  const { status } = await Location.requestForegroundPermissionsAsync();
-  if (status !== 'granted') {
-    throw new Error('Permesso posizione negato');
+  // Chromium/Android: Permissions API disponibile.
+  // Safari iPhone (PWA): spesso manca navigator.permissions → UnavailabilityError;
+  // in quel caso si prosegue con getCurrentPositionAsync, che mostra il prompt.
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      throw new Error('Permesso posizione negato');
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message === 'Permesso posizione negato') {
+      throw err;
+    }
   }
 
   let loc: Awaited<ReturnType<typeof Location.getCurrentPositionAsync>>;

@@ -1,8 +1,8 @@
-import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 
 import { AUTH_STORAGE_KEYS } from '@/constants/auth-storage';
 import { API_BASE_URL } from '@/constants/api';
+import * as SecureStorage from '@/lib/secure-storage';
 import { clearSession } from '@/lib/session';
 
 /**
@@ -17,7 +17,7 @@ async function headersForMobilePost(): Promise<Record<string, string>> {
     'Content-Type': 'application/json',
   };
   try {
-    const token = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.accessToken);
+    const token = await SecureStorage.getItemAsync(AUTH_STORAGE_KEYS.accessToken);
     if (token?.trim()) {
       headers.Authorization = `Bearer ${token.trim()}`;
     }
@@ -37,7 +37,7 @@ export function isSessionInvalidStatus(status: number): boolean {
 
 /**
  * Se la risposta indica accesso negato / sessione non valida:
- * svuota SecureStore e torna al login.
+ * svuota la sessione e torna al login.
  * @returns true se è stato eseguito il logout (non consumare il body per altre logiche).
  */
 export async function logoutIfUnauthorized(response: Response): Promise<boolean> {

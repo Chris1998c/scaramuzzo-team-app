@@ -9,7 +9,10 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test 'lib/__tests__/**/*.test.ts'"
+    "test": "node --import tsx --test 'lib/__tests__/**/*.test.ts'",
+    "export:web": "expo export -p web",
+    "sync:web:manager": "node scripts/sync-web-to-manager.mjs",
+    "build:web:manager": "npm run export:web && npm run sync:web:manager"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

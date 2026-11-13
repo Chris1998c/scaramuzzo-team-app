@@ -1,4 +1,4 @@
-/** Chiavi SecureStore condivise tra login, home e logout. */
+/** Chiavi sessione condivise tra login, home e logout (SecureStore / sessionStorage web). */
 export const AUTH_STORAGE_KEYS = {
   staffId: 'staff_id',
   salonId: 'salon_id',

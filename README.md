@@ -25,6 +25,17 @@ App mobile Expo per i collaboratori (presenze, agenda, statistiche operative). C
 
 Dopo il login il Manager deve restituire `access_token` (JWT). L’app considera la sessione valida solo con **`staff_id` + `access_token`** in SecureStore; senza token le schermate protette reindirizzano al login.
 
+## Web / Aggiungi alla schermata Home (iPhone)
+
+Percorso supportato senza Expo Go né account Apple a pagamento: **PWA statica** sullo stesso host del Manager (`/team`), così le chiamate a `/api/mobile/*` restano same-origin (niente CORS aggiuntivo).
+
+1. Imposta `EXPO_PUBLIC_API_BASE_URL=https://manager.scaramuzzo.green` nel `.env` (o in CI)
+2. `npm run build:web:manager` — esporta Expo Web e copia in `../scaramuzzo-manager/public/team/`
+3. Deploy del Manager (Vercel) come di consueto
+4. Su iPhone Safari: apri `https://manager.scaramuzzo.green/team/` → Condividi → **Aggiungi alla schermata Home**
+
+Sessione web: `sessionStorage` (token non in URL né in `localStorage`). Timbratura: GPS del browser al tap (richiede HTTPS e permesso posizione).
+
 ## Build interna (EAS)
 
 È presente un `eas.json` di base (`preview` / `internal`). Prima di una build:

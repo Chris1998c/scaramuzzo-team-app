@@ -28,7 +28,16 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "Scaramuzzo Team",
+      "shortName": "Team",
+      "description": "Presenze, agenda e statistiche per i collaboratori Scaramuzzo",
+      "themeColor": "#140905",
+      "backgroundColor": "#140905",
+      "display": "standalone",
+      "lang": "it",
+      "startUrl": "/team",
+      "scope": "/team"
     },
     "plugins": [
       "expo-router",
@@ -59,7 +68,8 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": true,
+      "baseUrl": "/team"
     },
     "extra": {
       "router": {},

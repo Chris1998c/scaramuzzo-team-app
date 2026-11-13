@@ -1,6 +1,5 @@
-import * as SecureStore from 'expo-secure-store';
-
 import { AUTH_STORAGE_KEYS } from '@/constants/auth-storage';
+import * as SecureStorage from '@/lib/secure-storage';
 
 const KEYS = Object.values(AUTH_STORAGE_KEYS);
 
@@ -8,7 +7,7 @@ const KEYS = Object.values(AUTH_STORAGE_KEYS);
 export async function clearSession(): Promise<void> {
   for (const key of KEYS) {
     try {
-      await SecureStore.deleteItemAsync(key);
+      await SecureStorage.deleteItemAsync(key);
     } catch {
       /* best-effort */
     }

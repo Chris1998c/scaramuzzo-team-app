@@ -1,6 +1,5 @@
-import * as SecureStore from 'expo-secure-store';
-
 import { AUTH_STORAGE_KEYS } from '@/constants/auth-storage';
+import * as SecureStorage from '@/lib/secure-storage';
 import { clearSession } from '@/lib/session';
 
 /**
@@ -8,7 +7,7 @@ import { clearSession } from '@/lib/session';
  */
 export async function readStaffIdOrNull(): Promise<number | null> {
   try {
-    const raw = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.staffId);
+    const raw = await SecureStorage.getItemAsync(AUTH_STORAGE_KEYS.staffId);
     if (!raw?.trim()) {
       return null;
     }
@@ -25,7 +24,7 @@ export async function readStaffIdOrNull(): Promise<number | null> {
 /** Bearer JWT emesso da POST /api/mobile/login (obbligatorio per le API mobile protette). */
 export async function readAccessTokenOrNull(): Promise<string | null> {
   try {
-    const raw = await SecureStore.getItemAsync(AUTH_STORAGE_KEYS.accessToken);
+    const raw = await SecureStorage.getItemAsync(AUTH_STORAGE_KEYS.accessToken);
     const t = raw?.trim();
     return t ? t : null;
   } catch {
@@ -51,7 +50,7 @@ export async function hasValidMobileSession(): Promise<ValidMobileSession | null
 
 /**
  * Per gate (index, login, drawer): se manca token o staff, oppure stato parziale,
- * svuota SecureStore e restituisce null → redirect login.
+ * svuota la sessione e restituisce null → redirect login.
  */
 export async function requireValidMobileSession(): Promise<ValidMobileSession | null> {
   const staffId = await readStaffIdOrNull();

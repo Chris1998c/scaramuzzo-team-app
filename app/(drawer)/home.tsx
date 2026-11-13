@@ -1,6 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +38,7 @@ import {
 } from '@/constants/shell-layout';
 import { firstNameFromDisplayName } from '@/lib/collaborator-identity';
 import { requireValidMobileSession } from '@/lib/mobile-session-read';
+import * as SecureStorage from '@/lib/secure-storage';
 import {
   ACCENT_CREAM,
   CARD_BORDER_COLOR,
@@ -138,8 +138,8 @@ export default function HomeScreen() {
         const { staffId } = session;
 
         const [storedName, storedStaffCode] = await Promise.all([
-          SecureStore.getItemAsync(AUTH_STORAGE_KEYS.collaboratorName),
-          SecureStore.getItemAsync(AUTH_STORAGE_KEYS.staffCode),
+          SecureStorage.getItemAsync(AUTH_STORAGE_KEYS.collaboratorName),
+          SecureStorage.getItemAsync(AUTH_STORAGE_KEYS.staffCode),
         ]);
         const name = storedName?.trim() ?? '';
         const codeStored = storedStaffCode?.trim() ?? '';

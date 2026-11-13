@@ -1,4 +1,3 @@
-import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -20,6 +19,7 @@ import {
 import { loginErrorUxForStatus } from '@/lib/mobile-login-errors';
 import { persistLoginSalonSession } from '@/lib/mobile-salon-session';
 import { requireValidMobileSession } from '@/lib/mobile-session-read';
+import * as SecureStorage from '@/lib/secure-storage';
 import {
   ACCENT_CREAM,
   BORDER_BRONZE,
@@ -94,10 +94,10 @@ export default function LoginScreen() {
         payload.staff_code != null ? String(payload.staff_code).trim() : '';
       const staffCodeToSave = staffCodeFromApi || code.trim();
 
-      await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.staffId, staffIdVal);
+      await SecureStorage.setItemAsync(AUTH_STORAGE_KEYS.staffId, staffIdVal);
       await persistLoginSalonSession(payload);
-      await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.collaboratorName, nameFromApi);
-      await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.staffCode, staffCodeToSave);
+      await SecureStorage.setItemAsync(AUTH_STORAGE_KEYS.collaboratorName, nameFromApi);
+      await SecureStorage.setItemAsync(AUTH_STORAGE_KEYS.staffCode, staffCodeToSave);
 
       const accessToken =
         typeof payload.access_token === 'string' ? payload.access_token.trim() : '';
@@ -112,11 +112,11 @@ export default function LoginScreen() {
       const tokenType =
         typeof payload.token_type === 'string' ? payload.token_type.trim() : '';
 
-      await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.accessToken, accessToken);
+      await SecureStorage.setItemAsync(AUTH_STORAGE_KEYS.accessToken, accessToken);
       if (tokenType) {
-        await SecureStore.setItemAsync(AUTH_STORAGE_KEYS.tokenType, tokenType);
+        await SecureStorage.setItemAsync(AUTH_STORAGE_KEYS.tokenType, tokenType);
       } else {
-        await SecureStore.deleteItemAsync(AUTH_STORAGE_KEYS.tokenType).catch(() => {});
+        await SecureStorage.deleteItemAsync(AUTH_STORAGE_KEYS.tokenType).catch(() => {});
       }
 
       router.replace('/(drawer)/home');

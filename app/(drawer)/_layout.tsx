@@ -64,6 +64,7 @@ export default function DrawerLayout() {
 
   return (
     <Drawer
+      backBehavior="initialRoute"
       drawerContent={(props: DrawerContentComponentProps) => <AppDrawerContent {...props} />}
       screenOptions={{
         headerShown: true,
