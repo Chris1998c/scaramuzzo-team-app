@@ -30,7 +30,7 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png",
       "name": "Scaramuzzo Team",
-      "shortName": "Team",
+      "shortName": "Scaramuzzo Team",
       "description": "Presenze, agenda e statistiche per i collaboratori Scaramuzzo",
       "themeColor": "#140905",
       "backgroundColor": "#140905",
